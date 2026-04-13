@@ -1,0 +1,15 @@
+# secrets
+.env
+.env.*
+secrets/
+private/
+
+# local config
+*.local
+
+# OS
+.DS_Store
+Thumbs.db
+
+# python
+__pycache__/

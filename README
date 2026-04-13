@@ -1,0 +1,451 @@
+# dotfiles (Research Environment Setup)
+
+このリポジトリは、研究用の開発環境（bash / PowerShell / uv / git）を
+**簡単に再現できるようにするための dotfiles** です。
+
+* Linux（大学PC） / Windows（自宅PC）両対応
+* uv による Python 環境管理
+* Git / GitHub 操作の簡略化
+* 環境変数はローカル分離（自分で設定してください）
+
+---
+
+# 📦 ディレクトリ構成
+
+```
+dotfiles/
+├─ .bashrc                # bash entrypoint
+├─ bash/                  # Linux 用設定
+├─ powershell/            # Windows 用設定
+├─ templates/             # env テンプレート
+├─ setup/                 # 初期セットアップスクリプト
+```
+
+---
+
+# 🚀 セットアップ
+
+---
+
+## ⚠️ 事前準備（必須）
+
+このセットアップを実行する前に、以下を確認してください。
+
+---
+
+### 🔹 Linux（大学PC）
+
+```bash
+git --version
+python3 --version
+uv --version
+```
+
+#### 必要なもの
+
+* git
+* Python（3.10以上推奨）
+* uv
+
+👉 uv が無い場合：
+
+```bash
+pip install uv
+```
+
+---
+
+### 🔹 Windows（PowerShell）
+
+```powershell
+git --version
+python --version
+uv --version
+```
+
+#### 必要なもの
+
+* git
+* Python（3.10以上推奨）
+* uv
+
+👉 uv が無い場合：
+
+```powershell
+python -m pip install uv
+```
+
+👉 Python が使えない場合：
+
+* Python をインストール
+* 「Add to PATH」にチェック
+
+---
+
+## 🔹 GPUについて（大学PC）
+
+GPUを使う場合は以下を確認してください：
+
+```bash
+nvidia-smi
+```
+
+👉 エラーが出る場合：
+
+* GPUノードに入っていない可能性あり
+* 以下でログイン：
+
+```bash
+srun_gpu a6000
+```
+
+---
+
+## 🔹 Linux（大学PC）
+
+```bash
+git clone <this repo> ~/dotfiles
+cd ~/dotfiles
+bash setup/linux.sh
+source ~/.bashrc
+```
+
+---
+
+## 🔹 Windows（PowerShell）
+
+```powershell
+git clone <this repo> $HOME\dotfiles
+cd $HOME\dotfiles
+powershell -ExecutionPolicy Bypass -File .\setup\windows.ps1
+```
+
+
+---
+
+# 🔧 セットアップ後にやること
+
+必要に応じて環境変数を編集します。
+
+## Linux
+
+```bash
+nano ~/.config/research-secrets/env.sh
+```
+
+## Windows
+
+```powershell
+notepad $HOME\.config\research-secrets\env.ps1
+```
+
+主に設定するもの：
+
+* HuggingFace token（必要な場合のみ）
+* 個人環境依存パス（フォントのパスだったり、.local/binだったり）
+
+---
+
+# 🧠 基本コマンド
+
+---
+
+## 🔹 Python / uv
+
+```bash
+uvproj_init [python_version]
+```
+
+uvプロジェクトを初期化し、開発環境を自動で構築するコマンド
+
+* `.venv` を作成（仮想環境）
+* 依存関係をインストール（uv sync）
+* Jupyterカーネルを登録
+
+👉 このコマンド1つで「実験できる状態」になる
+
+例：
+
+```bash
+uvproj_init        # デフォルト（3.11）
+uvproj_init 3.10   # Pythonバージョン指定
+```
+
+---
+
+```bash
+uvproj_use
+```
+
+作成済みの `.venv` を有効化する
+
+👉 Python環境をこのプロジェクト用に切り替える
+
+---
+
+```bash
+sour
+```
+
+`.venv` を有効化（短縮コマンド）
+
+👉 `source .venv/bin/activate` の簡略版
+👉 基本はこれを使えばOK
+
+---
+
+## 🔹 Git
+
+```bash
+gp "commit message"
+```
+
+変更内容をまとめてGitHubに保存するコマンド
+
+* `git add -A`
+* `git commit`
+* `git pull --rebase`
+* `git push`
+
+👉 一番よく使うコマンド
+👉 「とりあえず保存」はこれ
+
+例：
+
+```bash
+gp "update experiment"
+```
+
+---
+
+```bash
+gpush [message]
+```
+
+`gp` の簡易版
+
+* commitメッセージを省略可能
+* デフォルトは `"Backup"`
+
+👉 細かいこと考えずに保存したいとき
+
+例：
+
+```bash
+gpush
+gpush "fix bug"
+```
+
+---
+
+## 🔹 GitHub
+
+```bash
+gh_register owner/repo
+```
+
+新しいGitHubリポジトリを作成して接続するコマンド
+
+* GitHub上にリポジトリ作成
+* remote 設定
+* 初回 push
+
+👉 「このフォルダをGitHubに上げたい」ときに使う
+
+例：
+
+```bash
+gh_register ryoma-hi/llm_judge
+```
+
+---
+
+```bash
+gh_branch branch_name
+```
+
+新しいブランチを作成して切り替える
+
+* ブランチ作成
+* upstream 設定
+* GitHubと連携
+
+👉 機能追加や実験を分けたいときに使う
+
+例：
+
+```bash
+gh_branch feature-x
+```
+
+---
+
+## 🔹 Slurm（大学PCのみ）
+
+```bash
+srun_gpu [gpu_type]
+```
+
+GPU付きのインタラクティブ環境を起動する
+
+👉 GPUを使って実験したいとき
+
+例：
+
+```bash
+srun_gpu a6000
+srun_gpu v100
+```
+
+---
+
+```bash
+intr1 [gpu_type]
+```
+
+長時間のGPUジョブを起動する
+
+👉 長時間の学習・実験用
+
+例：
+
+```bash
+intr1
+intr1 a100
+```
+
+
+---
+
+# 🔐 環境変数について
+
+このリポジトリでは、環境変数を **ローカルに分離** しています。
+
+実際に使うファイルは以下です：
+
+## Linux
+
+```bash id="l2linux"
+~/.config/research-secrets/env.sh
+```
+
+## Windows（PowerShell）
+
+```powershell id="l2win"
+$HOME\.config\research-secrets\env.ps1
+```
+
+---
+
+## 📝 設定方法
+
+### 🔹 Linux
+
+```bash id="lcopy"
+cp templates/env.example.sh ~/.config/research-secrets/env.sh
+nano ~/.config/research-secrets/env.sh
+```
+
+---
+
+### 🔹 Windows（PowerShell）
+
+```powershell id="wcopy"
+Copy-Item templates\env.example.ps1 $HOME\.config\research-secrets\env.ps1
+notepad $HOME\.config\research-secrets\env.ps1
+```
+
+---
+
+## 📌 テンプレート
+
+以下を参考にしてください：
+
+```text id="tmpl"
+templates/env.example.sh
+templates/env.example.ps1
+```
+
+---
+
+## ⚠️ 注意
+
+* `HUGGINGFACE_TOKEN` などの **個人情報は各自で設定してください**
+* 環境によって存在しないパスは削除しても問題ありません
+* Windowsでは PowerShell を再起動しないと反映されない場合があります
+
+---
+
+# ⚠️ uv環境でのパッケージ管理について
+
+この環境では **uv を用いて Python パッケージを管理しています**。
+
+---
+
+## ❌ NG（やってはいけない）
+
+```bash
+pip install xxx
+```
+
+👉 グローバル環境や想定外の場所にインストールされる可能性があります
+👉 環境が壊れる原因になります
+
+---
+
+## ✅ 推奨（基本）
+
+```bash
+uv add xxx
+```
+
+* `pyproject.toml` に依存関係を追加
+* `uv.lock` を更新
+* 再現可能な環境になる
+
+👉 パッケージ追加はこれを使う
+
+---
+
+## ✅ 仮想環境内に直接入れる場合
+
+```bash
+uv pip install xxx
+```
+
+* `.venv` に直接インストール
+* `pyproject.toml` には反映されない
+
+👉 一時的な実験用
+
+---
+
+## 🔁 依存関係の反映
+
+```bash
+uv sync
+```
+
+* `pyproject.toml` と `uv.lock` に基づいて環境を再現
+
+👉 他のPCで作業するときは必須
+
+---
+
+## 🎯 まとめ
+
+| やりたいこと   | コマンド             |
+| -------- | ---------------- |
+| パッケージ追加  | `uv add`         |
+| 一時インストール | `uv pip install` |
+| 環境再現     | `uv sync`        |
+
+---
+
+## 💡 補足
+
+* 基本は `uv add` を使う
+* `pip install` は使わない
+* 環境を共有する場合は `uv sync` を使う
+
+---

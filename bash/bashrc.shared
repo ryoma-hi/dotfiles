@@ -1,0 +1,58 @@
+# ====================
+# common bash settings
+# ====================
+
+# helper 読み込み
+[ -f "$HOME/dotfiles/bash/uv_helpers.sh" ] && source "$HOME/dotfiles/bash/uv_helpers.sh"
+[ -f "$HOME/dotfiles/bash/git_helpers.sh" ] && source "$HOME/dotfiles/bash/git_helpers.sh"
+
+# slurm がある環境だけ読み込む
+if command -v srun >/dev/null 2>&1; then
+  [ -f "$HOME/dotfiles/bash/slurm_helpers.sh" ] && source "$HOME/dotfiles/bash/slurm_helpers.sh"
+fi
+
+# venv が勝手にプロンプトを変更しないようにする
+export VIRTUAL_ENV_DISABLE_PROMPT=1
+
+# ==== プロンプトに表示する仮想環境名 ====
+_venv_label() {
+  if [[ -z "${VIRTUAL_ENV:-}" ]]; then
+    echo ""
+    return 0
+  fi
+
+  local base
+  base="$(basename "$VIRTUAL_ENV")"
+
+  if [[ "$base" == ".venv" ]]; then
+    basename "$(dirname "$VIRTUAL_ENV")"
+  else
+    echo "$base"
+  fi
+}
+export -f _venv_label
+
+PS1="[\$(_venv_label)] \u@\h:\w \$ "
+
+# 履歴
+HISTSIZE=1000
+HISTCONTROL=ignoredups
+shopt -s histappend
+
+# alias
+alias a=alias
+alias pd=pushd
+alias pop=popd
+alias rs='resize > /dev/null'
+
+# bashrc 再読込
+rsta() {
+  if [[ -n "${VIRTUAL_ENV:-}" ]] && command -v deactivate >/dev/null 2>&1; then
+    echo "🚪 Deactivating: $(basename "$VIRTUAL_ENV")"
+    deactivate
+  fi
+  echo "🔁 Reloading ~/.bashrc..."
+  source ~/.bashrc
+  echo "✅ .bashrc reloaded."
+}
+export -f rsta
