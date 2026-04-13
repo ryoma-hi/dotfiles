@@ -50,8 +50,6 @@ uv が未インストールの場合：
 pip install uv
 ```
 
----
-
 ## 🐧 Linux（大学PC）
 
 ```
@@ -60,8 +58,6 @@ cd ~/dotfiles
 bash setup/linux.sh
 source ~/.bashrc
 ```
-
----
 
 ## 🪟 Windows（PowerShell）
 
