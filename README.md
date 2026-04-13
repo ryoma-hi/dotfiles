@@ -94,8 +94,6 @@ uvproj_init
 uvproj_init 3.10
 ```
 
----
-
 ### 🔹 仮想環境の有効化
 
 ```
@@ -109,8 +107,6 @@ uvproj_use
 ```
 
 👉 `.venv` を有効化し、このプロジェクト専用のPython環境に切り替えます
-
----
 
 ### 🔹 設定の再読み込み
 
@@ -169,8 +165,6 @@ gh_set_remote https://github.com/username/project
 ```
 
 👉 既存リポジトリに接続する場合はこちら
-
----
 
 ### 🔹 新規リポジトリ作成
 
