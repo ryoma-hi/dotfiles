@@ -190,7 +190,7 @@ gh_register owner/repo
 gh_register username/project
 ```
 
-👉 新しくGitHubに公開したい場合はこちら
+👉 新しくGitHubに公開したい場合はこちら（環境によって動かないので、レポジトリをgithubで作って、接続する方を推奨します）
 
 ---
 
