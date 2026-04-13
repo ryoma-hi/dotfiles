@@ -2,12 +2,11 @@
 
 研究用の開発環境を簡単に再現するための最小構成の dotfiles です。
 
-対応環境：
+できること：
 
-- Linux（大学PC）
-- Windows（自宅PC）
-- uvベースのPython環境
+- uvベースの仮想環境構築
 - Git / GitHub 操作の簡略化
+- Linux（大学PC）とWindows（自宅PC）で利用可能
 
 ---
 
@@ -141,7 +140,6 @@ gpush "commit message"
 - git pull --rebase
 - git push
 
-👉 一番よく使うコマンド
 👉 「とりあえず保存」はこれ
 
 例：
@@ -151,7 +149,7 @@ gpush
 gpush "実験更新"
 ```
 
-* commitメッセージを省略可能
+* commitメッセージは省略可能
 * デフォルトは `"Backup"`
 
 ---
@@ -169,7 +167,7 @@ gh_set_remote owner/repo
 remote（origin）を設定
 既存リポジトリに紐付け
 
-👉 「すでにGitHubにリポジトリがある」場合に使う
+👉 「すでにGitHubにリポジトリがある」場合に使う  
 👉 「ローカルとGitHubをつなぐ」ためのコマンド
 
 例：
@@ -301,7 +299,7 @@ $HOME\.config\research-secrets\env.ps1
 pip install xxx
 ```
 
-👉 グローバル環境や想定外の場所にインストールされる可能性があります
+👉 グローバル環境や想定外の場所にインストールされる可能性があります  
 👉 環境が壊れる原因になります
 
 ---
