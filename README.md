@@ -53,7 +53,7 @@ pip install uv
 ## 🐧 Linux（大学PC）
 
 ```
-git clone <this repo> ~/dotfiles
+git clone https://github.com/ryoma-hi/dotfiles.git ~/dotfiles
 cd ~/dotfiles
 bash setup/linux.sh
 source ~/.bashrc
@@ -62,7 +62,7 @@ source ~/.bashrc
 ## 🪟 Windows（PowerShell）
 
 ```
-git clone <this repo> $HOME\dotfiles
+git clone https://github.com/ryoma-hi/dotfiles.git $HOME\dotfiles
 cd $HOME\dotfiles
 powershell -ExecutionPolicy Bypass -File .\setup\windows.ps1
 ```
