@@ -1,12 +1,15 @@
 # dotfiles（研究環境セットアップ）
 
-研究用の開発環境を簡単に再現するための最小構成の dotfiles です。
+本リポジトリは、研究用の開発環境を**簡単に再現・共有**するための dotfiles です。  
+Linux（大学PC）とWindows（自宅PC）の両方で同一の操作感を実現することを目的としています。
 
-できること：
+---
 
-- uvベースの仮想環境構築
-- Git / GitHub 操作の簡略化
-- Linux（大学PC）とWindows（自宅PC）で利用可能
+## 🎯 このリポジトリでできること
+
+- uv を用いた Python 仮想環境の統一管理
+- Git / GitHub 操作の簡略化（コマンドラッパー）
+- OSをまたいだ一貫した開発環境の構築
 
 ---
 
@@ -15,9 +18,9 @@
 ```
 dotfiles/
 ├─ .bashrc            # bash エントリポイント
-├─ bash/              # Linux 設定
-├─ powershell/        # Windows 設定
-├─ templates/         # env テンプレート
+├─ bash/              # Linux 用設定
+├─ powershell/        # Windows 用設定
+├─ templates/         # 環境変数テンプレート
 └─ setup/             # セットアップスクリプト
 ```
 
@@ -25,7 +28,7 @@ dotfiles/
 
 ## 🚀 セットアップ
 
-### ⚠️ 必要なもの
+### ⚠️ 必要なソフトウェア
 
 以下がインストールされていることを確認してください：
 
@@ -33,7 +36,7 @@ dotfiles/
 - Python（3.10以上推奨）
 - uv
 
-確認：
+確認コマンド：
 
 ```
 git --version
@@ -41,7 +44,7 @@ python --version
 uv --version
 ```
 
-uv が無い場合：
+uv が未インストールの場合：
 
 ```
 pip install uv
@@ -68,25 +71,25 @@ cd $HOME\dotfiles
 powershell -ExecutionPolicy Bypass -File .\setup\windows.ps1
 ```
 
-セットアップ後は PowerShell / VS Code を再起動してください。
+👉 実行後は PowerShell または VS Code を再起動してください
 
 ---
 
 ## 🧪 Python / uv
 
-### 初期化
+### 🔹 初期化
 
 ```
 uvproj_init [python_version]
 ```
 
-このコマンドで以下を自動実行します：
+このコマンドは以下を自動で実行します：
 
-- `.venv` 作成
-- 依存関係インストール（uv sync）
-- Jupyterカーネル登録
+- `.venv`（仮想環境）の作成
+- 依存関係のインストール（`uv sync`）
+- Jupyterカーネルの登録
 
-👉 このコマンド1つで「実験できる状態」になる
+👉 これ1つで「すぐ実験できる状態」になります
 
 例：
 
@@ -97,78 +100,70 @@ uvproj_init 3.10
 
 ---
 
-### 環境の有効化
-
-```
-uvproj_use
-```
-
-または：
+### 🔹 仮想環境の有効化
 
 ```
 sour
 ```
 
-作成済みの `.venv` を有効化する
+または：
 
-👉 Python環境をこのプロジェクト用に切り替える
+```
+uvproj_use
+```
+
+👉 `.venv` を有効化し、このプロジェクト専用のPython環境に切り替えます
 
 ---
+
+### 🔹 設定の再読み込み
 
 ```
 rsta
 ```
 
-シェル設定を再読み込みする
-
-👉 環境変数や追加した関数・コマンドを反映したいときに使用
+👉 環境変数や関数を再読み込みします
 
 ---
 
-## 🔧 Git
+## 🔧 Git 操作
 
-### 保存（基本コマンド）
+### 🔹 保存（最も重要）
 
 ```
 gpush "commit message"
 ```
 
-内部で実行される処理：
+以下をまとめて実行します：
 
-- git add -A
-- git commit
-- git pull --rebase
-- git push
+- `git add -A`
+- `git commit`
+- `git pull --rebase`
+- `git push`
 
-👉 「とりあえず保存」はこれ
+👉 日常的な「保存」はこのコマンドだけでOK
 
 例：
 
 ```
 gpush
-gpush "実験更新"
+gpush "実験結果更新"
 ```
-
-* commitメッセージは省略可能
-* デフォルトは `"Backup"`
 
 ---
 
-## 🌐 GitHub
+## 🌐 GitHub 操作
 
-### 既存リポジトリに接続
+### 🔹 既存リポジトリに接続
 
 ```
 gh_set_remote owner/repo
 ```
 
-既存のGitHubリポジトリに接続するコマンド
+既にGitHub上に存在するリポジトリと接続します。
 
-remote（origin）を設定
-既存リポジトリに紐付け
-
-👉 「すでにGitHubにリポジトリがある」場合に使う  
-👉 「ローカルとGitHubをつなぐ」ためのコマンド
+- remote（origin）を設定
+- ローカルとGitHubを紐付け
 
 例：
 
@@ -177,186 +172,141 @@ gh_set_remote username/project
 gh_set_remote https://github.com/username/project
 ```
 
+👉 既存リポジトリに接続する場合はこちら
+
 ---
 
-### 新規リポジトリ作成
+### 🔹 新規リポジトリ作成
 
 ```
 gh_register owner/repo
 ```
 
-新しく作成したGitHubリポジトリに接続するコマンド
+以下を自動で実行します：
 
-* GitHub上のリポジトリに接続
-* remote 設定
-* 初回 push
-
-👉 「このフォルダをGitHubに上げたい」ときに使う
+- GitHub上にリポジトリ作成
+- remote設定
+- 初回 push
 
 例：
 
-```bash
+```
 gh_register username/project
 ```
-または：
 
-```bash
-gh_register https://github.com/username/project
-```
+👉 新しくGitHubに公開したい場合はこちら
 
 ---
 
-## 🌿 ブランチ
-
-### 作成＋切り替え
+## 🌿 ブランチ操作
 
 ```
 gh_branch branch_name
 ```
 
-新しいブランチを作成して切り替える
+以下を実行します：
 
-* ブランチ作成
-* upstream 設定
-* GitHubと連携
-
-👉 機能追加や実験を分けたいときに使う
+- ブランチ作成
+- 切り替え
+- upstream設定
 
 例：
 
 ```
 gh_branch feature-x
 ```
+
+👉 機能追加や実験を分離する際に使用
+
 ---
 
 ## 🔹 Slurm（大学PCのみ）
 
-```bash
-srun_gpu [gpu_type]
+### GPU環境起動
+
+```
+srun_gpu モデル名
 ```
 
-GPU付きのインタラクティブ環境を起動する
+### 長時間ジョブ
 
-👉 GPUを使って実験したいとき
-
-例：
-
-```bash
-srun_gpu a6000
-srun_gpu v100
 ```
+intr1 モデル名
+```
+
+👉 GPUを使った実験・学習に使用
 
 ---
 
-```bash
-intr1 [gpu_type]
-```
+## 🔐 環境変数管理
 
-長時間のGPUジョブを起動する
+環境変数はローカルに分離されています（Gitに含まれません）
 
-👉 長時間の学習・実験用
-
-例：
-
-```bash
-intr1
-intr1 a100
-```
-
----
-
-# 🔐 環境変数について
-
-このリポジトリでは、環境変数を **ローカルに分離** しています。
-
-実際に使うファイルは以下です。適宜以下のファイルを各自で修正してください：
-
-## Linux
+### Linux
 
 ```
 ~/.config/research-secrets/env.sh
 ```
 
-## Windows（PowerShell）
+### Windows
 
 ```
 $HOME\.config\research-secrets\env.ps1
 ```
 
-テンプレートは dotfiles\templates にありますのでさんこうにしてください。
+👉 これらのファイルを各自で編集してください（テンプレートは dotfiles\templates にあります）
 
 ---
 
-# ⚠️ uv環境でのパッケージ管理について
+## ⚠️ uv 環境でのパッケージ管理
 
-この環境では **uv を用いて Python パッケージを管理しています**。
+### ❌ NG
 
----
-
-## ❌ NG（やってはいけない）
-
-```bash
+```
 pip install xxx
 ```
 
-👉 グローバル環境や想定外の場所にインストールされる可能性があります  
-👉 環境が壊れる原因になります
+👉 環境が壊れる可能性があります
 
 ---
 
-## ✅ 推奨（基本）
+### ✅ 推奨
 
-```bash
+```
 uv add xxx
 ```
 
-* `pyproject.toml` に依存関係を追加
-* `uv.lock` を更新
-* 再現可能な環境になる
-
-👉 パッケージ追加はこれを使う
+- `pyproject.toml` に反映
+- 再現可能な環境になる
 
 ---
 
-## ✅ 仮想環境内に直接入れる場合
+### ✅ 一時インストール
 
-```bash
+```
 uv pip install xxx
 ```
 
-* `.venv` に直接インストール
-* `pyproject.toml` には反映されない
-
-👉 一時的な実験用
+👉 実験用（環境には残らない）
 
 ---
 
-## 🔁 依存関係の反映
+### 🔁 環境再現
 
-```bash
+```
 uv sync
 ```
 
-* `pyproject.toml` と `uv.lock` に基づいて環境を再現
-
-👉 他のPCで作業するときは必須
+👉 他PCで作業する際に必須
 
 ---
 
 ## 🎯 まとめ
 
-| やりたいこと   | コマンド             |
-| -------- | ---------------- |
-| パッケージ追加  | `uv add`         |
-| 一時インストール | `uv pip install` |
-| 環境再現     | `uv sync`        |
-
----
-
-## 💡 補足
-
-* 基本は `uv add` を使う
-* `pip install` は使わない
-* 環境を共有する場合は `uv sync` を使う
+| 目的 | コマンド |
+|------|--------|
+| パッケージ追加 | uv add |
+| 一時インストール | uv pip install |
+| 環境再現 | uv sync |
 
 ---
