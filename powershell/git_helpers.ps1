@@ -1,8 +1,8 @@
-function gstatus {
+function gs {
     git status
 }
 
-function glog {
+function gl {
     git log --oneline --graph --all
 }
 
@@ -39,14 +39,27 @@ function gpush {
 
 function gh_set_remote {
     param(
-        [Parameter(Mandatory=$true)][string]$repo,
-        [string]$proto = "ssh"
+        [Parameter(Mandatory=$true)][string]$repo
     )
 
-    if ($proto -eq "https") {
+    $repo = $repo.Trim()
+
+    if ($repo -match '^https://github\.com/[^/]+/[^/]+(?:\.git)?/?$') {
+        $url = $repo.TrimEnd('/')
+        if ($url -notmatch '\.git$') {
+            $url = "$url.git"
+        }
+    }
+    elseif ($repo -match '^[^/]+/[^/]+$') {
         $url = "https://github.com/$repo.git"
-    } else {
-        $url = "git@github.com:$repo.git"
+    }
+    else {
+        Write-Host "[ERROR] Invalid repository format."
+        Write-Host "[INFO] Use one of the following formats:"
+        Write-Host "       username/repository"
+        Write-Host "       https://github.com/username/repository"
+        Write-Host "       https://github.com/username/repository.git"
+        return
     }
 
     git remote get-url origin *> $null
@@ -61,7 +74,7 @@ function gh_set_remote {
 
     git rev-parse --verify HEAD *> $null
     if ($LASTEXITCODE -ne 0) {
-        Write-Host "[INFO] No commits yet. Run 'git push -u origin $branch' after your first commit."
+        Write-Host "[INFO] No commits yet. Run 'gpush ""Initial commit""' or 'git push -u origin $branch' after your first commit."
         Write-Host "[OK] Remote set to $url."
         return
     }
