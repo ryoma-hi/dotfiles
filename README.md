@@ -212,7 +212,12 @@ gh_branch branch_name
 gh_branch feature-x
 ```
 
-👉 機能追加や実験を分離する際に使用
+👉 機能追加や実験を分離する際に使用  
+mainに戻るには以下のコマンドを実行してください。
+
+```
+git switch main
+```
 
 ---
 
