@@ -17,25 +17,34 @@ _uv_project_name() {
 
 # プロジェクト用 .venv を作って依存を同期し、Jupyter カーネルを登録
 uvproj_init() {
+  local pyver="$1"
+
   if ! command -v uv >/dev/null 2>&1; then
-    echo "❌ uv が見つかりません。先に uv をインストールしてください。"
+    echo "[ERROR] uv not found. Please install uv first."
     return 1
   fi
 
-  # pyproject.toml がなければ uv project として初期化
-  if ! _uv_is_uv_project; then
-    echo "ℹ️ pyproject.toml が無いので、このディレクトリを uv プロジェクトとして初期化します。"
+  # 優先順位: 引数 > 環境変数 > 未指定
+  if [[ -n "$pyver" ]]; then
+    echo "[INFO] Using Python version from argument: $pyver"
+  elif [[ -n "$UV_DEFAULT_PYVER" ]]; then
+    pyver="$UV_DEFAULT_PYVER"
+    echo "[INFO] Using default Python version: $pyver"
+  fi
 
-    if [[ -n "$UV_DEFAULT_PYVER" ]]; then
-      echo "   → uv init --python ${UV_DEFAULT_PYVER}"
-      uv init --python "$UV_DEFAULT_PYVER" || {
-        echo "❌ uv init に失敗しました。"
+  if ! _uv_is_uv_project; then
+    echo "[INFO] No pyproject.toml found. Initializing this directory as a uv project."
+
+    if [[ -n "$pyver" ]]; then
+      echo "[INFO] Running: uv init --python $pyver"
+      uv init --python "$pyver" || {
+        echo "[ERROR] uv init failed."
         return 1
       }
     else
-      echo "   → uv init"
+      echo "[INFO] Running: uv init"
       uv init || {
-        echo "❌ uv init に失敗しました。"
+        echo "[ERROR] uv init failed."
         return 1
       }
     fi
@@ -45,36 +54,34 @@ uvproj_init() {
   proj="$(_uv_project_name)"
   envdir=".venv"
 
-  echo "📦 uv sync: project=${proj} env=${envdir}"
-  if [[ -n "$UV_DEFAULT_PYVER" ]]; then
-    UV_PYTHON="$UV_DEFAULT_PYVER" uv sync || return 1
+  echo "[INFO] Running uv sync: project=${proj} env=${envdir}"
+  if [[ -n "$pyver" ]]; then
+    UV_PYTHON="$pyver" uv sync || return 1
   else
     uv sync || return 1
   fi
 
   py="${envdir}/bin/python"
   if [[ ! -x "$py" ]]; then
-    echo "❌ ${py} が見つかりません (.venv の作成に失敗していそうです)。"
+    echo "[ERROR] ${py} not found. .venv may not have been created correctly."
     return 1
   fi
 
-  # ipykernel が無ければ入れる
   if ! "$py" -c "import ipykernel" 2>/dev/null; then
-    echo "📦 Installing ipykernel into .venv via uv..."
+    echo "[INFO] Installing ipykernel into .venv via uv..."
     uv pip install -p "$py" ipykernel || {
-      echo "❌ ipykernel のインストールに失敗しました。"
+      echo "[ERROR] Failed to install ipykernel."
       return 1
     }
   fi
 
-  # Jupyter カーネル登録
   "$py" -m ipykernel install --user --name "${proj}" --display-name "Python (${proj})" || {
-    echo "❌ ipykernel の登録に失敗しました。"
+    echo "[ERROR] Failed to register ipykernel."
     return 1
   }
 
-  echo "✅ uvproj_init 完了: .venv / kernel='${proj}'"
-  echo "   → 有効化するには: sour または source .venv/bin/activate"
+  echo "[OK] uvproj_init completed: .venv / kernel='${proj}'"
+  echo "[INFO] To activate it, run: sour"
 }
 export -f uvproj_init
 
