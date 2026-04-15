@@ -81,7 +81,7 @@ git config --global user.name "あなたの名前"
 git config --global user.email "あなたのメールアドレス"
 ```
 
-###　 ② GitHub 認証 
+### ② GitHub 認証
 
 以下のコマンドでログインしてください：
 
@@ -95,7 +95,7 @@ gh auth login
 gh auth status
 ```
 
-###　 🔹 GitHub CLI が未インストールの場合 
+### 🔹 GitHub CLI が未インストールの場合
 
 - Linux
 ```
