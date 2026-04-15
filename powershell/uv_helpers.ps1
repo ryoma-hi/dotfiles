@@ -126,8 +126,17 @@ function uvproj_init {
         return
     }
 
-    & $py -c "import ipykernel" 2>$null
-    if ($LASTEXITCODE -ne 0) {
+    $hasIpykernel = $true
+    $oldProbeErrorAction = $ErrorActionPreference
+    try {
+        $ErrorActionPreference = "Continue"
+        & $py -c "import ipykernel" 2>$null
+        $hasIpykernel = ($LASTEXITCODE -eq 0)
+    } finally {
+        $ErrorActionPreference = $oldProbeErrorAction
+    }
+
+    if (-not $hasIpykernel) {
         Write-Host "[INFO] Installing ipykernel into .venv via uv..."
         $pipExit = Invoke-Uv pip install --python $py ipykernel
         if ($pipExit -ne 0) {
