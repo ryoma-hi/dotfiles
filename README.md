@@ -75,12 +75,12 @@ powershell -ExecutionPolicy Bypass -File .\setup\windows.ps1
 この dotfiles は Git / GitHub 操作を前提としているため、
 事前にアカウント設定が必要です。
 
-###　① Git ユーザー設定
+###　　① Git ユーザー設定
 ```
 git config --global user.name "あなたの名前"
 git config --global user.email "あなたのメールアドレス"
 ```
-###　② GitHub 認証
+###　　② GitHub 認証
 以下のコマンドでログインしてください：
 ```
 gh auth login
