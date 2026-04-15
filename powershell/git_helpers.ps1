@@ -90,3 +90,100 @@ function gh_set_remote {
         Write-Host "[OK] Remote set to $url and pushed $branch."
     }
 }
+
+function gh_register {
+    param(
+        [Parameter(Mandatory=$true)][string]$repo,
+        [string]$vis = "private"
+    )
+
+    $repo = $repo.Trim()
+    $vis = $vis.Trim().ToLower()
+
+    if ($repo -notmatch '^[^/]+/[^/]+$') {
+        Write-Host "[ERROR] Invalid repository format."
+        Write-Host "[INFO] Usage: gh_register owner/repo [private|public]"
+        return
+    }
+
+    if ($vis -ne "private" -and $vis -ne "public") {
+        Write-Host "[ERROR] Visibility must be 'private' or 'public'."
+        return
+    }
+
+    git rev-parse --git-dir *> $null
+    if ($LASTEXITCODE -ne 0) {
+        git init
+        if ($LASTEXITCODE -ne 0) { return }
+    }
+
+    git rev-parse --verify HEAD *> $null
+    if ($LASTEXITCODE -ne 0) {
+        if (-not (Test-Path "README.md")) {
+            $repoName = ($repo -split "/")[-1]
+            Set-Content -Path "README.md" -Value "# $repoName"
+        }
+
+        git add -A
+        if ($LASTEXITCODE -ne 0) { return }
+
+        git commit -m "initial commit"
+        if ($LASTEXITCODE -ne 0) { return }
+    }
+
+    $ghCmd = Get-Command gh -ErrorAction SilentlyContinue
+    if ($ghCmd) {
+        gh repo create $repo --$vis --source . --remote origin --push
+        if ($LASTEXITCODE -ne 0) { return }
+    } else {
+        Write-Host "[INFO] gh CLI not found. Create repo on GitHub first:"
+        Write-Host "       https://github.com/new"
+        gh_set_remote $repo
+        if ($LASTEXITCODE -ne 0) { return }
+        gpush "initial commit"
+        if ($LASTEXITCODE -ne 0) { return }
+    }
+
+    Write-Host "[OK] Repository ready: $repo"
+}
+
+function gh_branch {
+    param(
+        [Parameter(Mandatory=$true)][string]$name,
+        [string]$base = "HEAD"
+    )
+
+    $name = $name.Trim()
+    $base = $base.Trim()
+
+    if (-not $name) {
+        Write-Host "[ERROR] Branch name is required."
+        Write-Host "[INFO] Usage: gh_branch <name> [base]"
+        return
+    }
+
+    if ($base -eq "main") {
+        $base = "origin/main"
+    }
+
+    git rev-parse --git-dir *> $null
+    if ($LASTEXITCODE -ne 0) {
+        Write-Host "[ERROR] Not a git repo"
+        return
+    }
+
+    git fetch origin -q 2>$null
+
+    git show-ref --verify --quiet "refs/heads/$name"
+    if ($LASTEXITCODE -eq 0) {
+        git switch $name
+        if ($LASTEXITCODE -ne 0) { return }
+    } else {
+        git switch -c $name $base
+        if ($LASTEXITCODE -ne 0) { return }
+    }
+
+    git push -u origin $name 2>$null | Out-Null
+
+    Write-Host "[OK] Now on branch: $name"
+}
