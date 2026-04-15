@@ -14,7 +14,12 @@ function gl {
 gpush() {
   local msg="${1:-Update}"
   local branch
-  branch="$(git symbolic-ref --quiet --short HEAD 2>/dev/null || echo main)"
+
+  branch="$(git symbolic-ref --quiet --short HEAD 2>/dev/null)"
+  if [[ -z "$branch" ]]; then
+    echo "[ERROR] No branch detected. Run: git switch -c main"
+    return 1
+  fi
 
   git add -A || return 1
 
@@ -24,13 +29,20 @@ gpush() {
     echo "[INFO] No changes: skipping commit."
   fi
 
-  git pull --rebase --autostash origin "$branch" 2>/dev/null || true
+  # upstream がある場合だけ pull
+  if git rev-parse --abbrev-ref --symbolic-full-name '@{u}' >/dev/null 2>&1; then
+    git pull --rebase --autostash origin "$branch" || return 1
+  fi
 
-  git push -u origin "$branch" || return 1
+  # upstream があるかチェック
+  if git rev-parse --abbrev-ref --symbolic-full-name '@{u}' >/dev/null 2>&1; then
+    git push origin "$branch" || return 1
+  else
+    git push -u origin "$branch" || return 1
+  fi
 
   echo "[OK] Pushed to origin/$branch"
 }
-
 export -f gpush
 
 

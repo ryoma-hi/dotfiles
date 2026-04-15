@@ -21,7 +21,14 @@ function gpush {
     }
 
     $branch = git branch --show-current
-    if (-not $branch) { $branch = "main" }
+    if (-not $branch) {
+        $branch = git symbolic-ref --short HEAD 2>$null
+    }
+    if (-not $branch) {
+        Write-Host "[ERROR] Branch not detected. Please run:"
+        Write-Host "        git switch -c main"
+        return
+    }
 
     git pull --rebase --autostash origin $branch 2>$null
 
