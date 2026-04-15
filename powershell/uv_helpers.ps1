@@ -4,6 +4,46 @@
 
 $env:UV_DEFAULT_PYVER = if ($env:UV_DEFAULT_PYVER) { $env:UV_DEFAULT_PYVER } else { "3.11" }
 
+function Get-UvExecutable {
+    if ($env:UV_EXE -and (Test-Path $env:UV_EXE)) {
+        return $env:UV_EXE
+    }
+
+    $candidates = @(
+        "$env:LOCALAPPDATA\Microsoft\WinGet\Packages\astral-sh.uv_Microsoft.Winget.Source_8wekyb3d8bbwe\uv.exe",
+        "$HOME\.local\bin\uv.exe"
+    )
+
+    foreach ($candidate in $candidates) {
+        if (Test-Path $candidate) {
+            return $candidate
+        }
+    }
+
+    $uvCmd = Get-Command uv -ErrorAction SilentlyContinue
+    if ($uvCmd -and $uvCmd.CommandType -eq "Application" -and (Test-Path $uvCmd.Source)) {
+        return $uvCmd.Source
+    }
+
+    return $null
+}
+
+function Invoke-Uv {
+    param(
+        [Parameter(ValueFromRemainingArguments = $true)]
+        [string[]]$Args
+    )
+
+    $uvExe = Get-UvExecutable
+    if (-not $uvExe) {
+        Write-Host "[ERROR] usable uv.exe not found. Install winget package: astral-sh.uv"
+        return 127
+    }
+
+    & $uvExe @Args
+    return $LASTEXITCODE
+}
+
 function Test-UvProject {
     Test-Path ".\pyproject.toml"
 }
@@ -17,11 +57,13 @@ function uvproj_init {
         [string]$PythonVersion
     )
 
-    $uvCmd = Get-Command uv -ErrorAction SilentlyContinue
-    if (-not $uvCmd) {
-        Write-Host "[ERROR] uv not found. Please install uv first."
+    $uvExe = Get-UvExecutable
+    if (-not $uvExe) {
+        Write-Host "[ERROR] usable uv.exe not found. Please install winget package: astral-sh.uv"
         return
     }
+
+    Write-Host "[INFO] Using uv executable: $uvExe"
 
     $pyver = $null
     if ($PythonVersion) {
@@ -32,19 +74,26 @@ function uvproj_init {
         Write-Host "[INFO] Using default Python version: $pyver"
     }
 
+    $oldUvDownloads = $env:UV_PYTHON_DOWNLOADS
+    $oldUvPreference = $env:UV_PYTHON_PREFERENCE
+    $env:UV_PYTHON_DOWNLOADS = "never"
+    $env:UV_PYTHON_PREFERENCE = "only-system"
+
     if (-not (Test-UvProject)) {
         Write-Host "[INFO] No pyproject.toml found. Initializing this directory as a uv project."
 
         if ($pyver) {
             Write-Host "[INFO] Running: uv init --python $pyver"
-            uv init --python $pyver
+            $exit = Invoke-Uv init --python $pyver
         } else {
             Write-Host "[INFO] Running: uv init"
-            uv init
+            $exit = Invoke-Uv init
         }
 
-        if ($LASTEXITCODE -ne 0) {
+        if ($exit -ne 0) {
             Write-Host "[ERROR] uv init failed."
+            $env:UV_PYTHON_DOWNLOADS = $oldUvDownloads
+            $env:UV_PYTHON_PREFERENCE = $oldUvPreference
             return
         }
     }
@@ -55,13 +104,20 @@ function uvproj_init {
     Write-Host "[INFO] Running uv sync: project=$proj env=$envDir"
     if ($pyver) {
         $env:UV_PYTHON = $pyver
-        uv sync
-        $syncExit = $LASTEXITCODE
+        $syncExit = Invoke-Uv sync
         Remove-Item Env:UV_PYTHON -ErrorAction SilentlyContinue
-        if ($syncExit -ne 0) { return }
+        if ($syncExit -ne 0) {
+            $env:UV_PYTHON_DOWNLOADS = $oldUvDownloads
+            $env:UV_PYTHON_PREFERENCE = $oldUvPreference
+            return
+        }
     } else {
-        uv sync
-        if ($LASTEXITCODE -ne 0) { return }
+        $syncExit = Invoke-Uv sync
+        if ($syncExit -ne 0) {
+            $env:UV_PYTHON_DOWNLOADS = $oldUvDownloads
+            $env:UV_PYTHON_PREFERENCE = $oldUvPreference
+            return
+        }
     }
 
     $py = ".\.venv\Scripts\python.exe"
@@ -73,9 +129,11 @@ function uvproj_init {
     & $py -c "import ipykernel" 2>$null
     if ($LASTEXITCODE -ne 0) {
         Write-Host "[INFO] Installing ipykernel into .venv via uv..."
-        uv pip install --python $py ipykernel
-        if ($LASTEXITCODE -ne 0) {
+        $pipExit = Invoke-Uv pip install --python $py ipykernel
+        if ($pipExit -ne 0) {
             Write-Host "[ERROR] Failed to install ipykernel."
+            $env:UV_PYTHON_DOWNLOADS = $oldUvDownloads
+            $env:UV_PYTHON_PREFERENCE = $oldUvPreference
             return
         }
     }
@@ -83,8 +141,13 @@ function uvproj_init {
     & $py -m ipykernel install --user --name $proj --display-name "Python ($proj)"
     if ($LASTEXITCODE -ne 0) {
         Write-Host "[ERROR] Failed to register ipykernel."
+        $env:UV_PYTHON_DOWNLOADS = $oldUvDownloads
+        $env:UV_PYTHON_PREFERENCE = $oldUvPreference
         return
     }
+
+    $env:UV_PYTHON_DOWNLOADS = $oldUvDownloads
+    $env:UV_PYTHON_PREFERENCE = $oldUvPreference
 
     Write-Host "[OK] uvproj_init completed: .venv / kernel='$proj'"
     Write-Host "[INFO] To activate it, run: sour"
