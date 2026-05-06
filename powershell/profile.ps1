@@ -27,3 +27,19 @@ function global:prompt {
         "PS $($executionContext.SessionState.Path.CurrentLocation)> "
     }
 }
+
+function open-elm {
+    & "$HOME\dotfiles\powershell\open-elm.ps1" @args
+}
+
+function elm {
+    open-elm @args
+}
+
+function stop-elm {
+    & "$HOME\dotfiles\powershell\stop-elm.ps1"
+}
+
+function elm-judge {
+    open-elm -ProjectPath "/cl/work13/ryoma-hi/llm_judge"
+}
